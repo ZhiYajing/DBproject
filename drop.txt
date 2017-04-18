@@ -1,0 +1,4 @@
+drop table orders casecade;
+drop table orderbook casecade;
+drop table student casecade;
+drop table books cascade;
