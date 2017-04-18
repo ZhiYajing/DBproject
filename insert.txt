@@ -1,0 +1,33 @@
+drop table books;
+create table books(booknumber varchar(20) primary key,title varchar(20),author varchar(20),price real,amount int);
+drop table student;
+create table student(studentnumber varchar(20) primary key,name varchar(20),gender varchar(10),major varchar(20),discountlevel real);
+drop table orders;
+create table orders(orderid varchar(50),studentnumber varchar(20),orderdate date,totalprice real,paymentmethod varchar(20),cardno varchar(30));
+drop table orderbook;
+create table orderbook(orderbookid varchar(50),orderid varchar(50),booknumber varchar(20),deliverydate date,delivered int);
+
+insert into books VALUES ('7802117321','Pride and Prejudice','George R. R. Martin',399,3);
+insert into books VALUES ('7802117322','A Song of Ice and Fire I','George R. R. Martin',1699,4);
+insert into books VALUES ('7802117323','A Song of Ice and Fire II','George R. R. Martin',300,3);
+insert into books VALUES ('7802117324','Harry Potter I','JK Roling',300,10);
+insert into books VALUES ('7802117325','Harry Potter II','JK Roling',300,0);
+insert into books VALUES ('7802117326','Harry Potter III','JK Roling',400,20);
+
+insert into orders VALUES('debf95ac-236d-11e7-93ae-92361f002671','0002',sysdate,399,'card','123');
+insert into orders VALUES('debf95ac-236d-11e7-93ae-92361f002672','0002',sysdate,600,'card','123');
+insert into orders VALUES('601f38aa-236e-11e7-93ae-92361f002671','0001',sysdate,1699,'card','1234');
+insert into orders VALUES('601f38aa-236e-11e7-93ae-92361f002672','0001',sysdate,300,'card','1234');
+insert into orders VALUES('718c7f44-236e-11e7-93ae-92361f002671','0003',sysdate,300,'card','12345');
+
+insert into orderbook VALUES('902c0f28-236e-11e7-93ae-92361f002671','debf95ac-236d-11e7-93ae-92361f002671','7802117321',sysdate,1);
+insert into orderbook VALUES('902c0f28-236e-11e7-93ae-92361f002672','debf95ac-236d-11e7-93ae-92361f002672','7802117324',sysdate-3,1);
+insert into orderbook VALUES('902c0f28-236e-11e7-93ae-92361f002673','debf95ac-236d-11e7-93ae-92361f002672','7802117325',sysdate-3,0);
+insert into orderbook VALUES('abbc8254-236e-11e7-93ae-92361f002671','601f38aa-236e-11e7-93ae-92361f002671','7802117322',sysdate,1);
+insert into orderbook VALUES('abbc8254-236e-11e7-93ae-92361f002672','601f38aa-236e-11e7-93ae-92361f002672','7802117325',sysdate-8,0);
+insert into orderbook VALUES('bd591be4-236e-11e7-93ae-92361f002671','718c7f44-236e-11e7-93ae-92361f002671','7802117323',sysdate,1);
+
+
+insert into student(studentnumber,name,discountlevel) values('0001','Kurt',0.1);
+insert into student(studentnumber,name,discountlevel) values('0002','Rex',0);
+insert into student(studentnumber,name,discountlevel) values('0003','Jerry',0);
