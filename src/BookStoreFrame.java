@@ -153,7 +153,7 @@ public class BookStoreFrame extends JFrame {
 		{
             public boolean isCellEditable(int row, int column)
                  {
-                            return false;}//±í¸ñ²»ÔÊĞí±»±à¼­
+                            return false;}//Â±Ã­Â¸Ã±Â²Â»Ã”ÃŠÃÃ­Â±Â»Â±Ã Â¼Â­
                  };
 	
 		//only select one row
@@ -166,7 +166,7 @@ public class BookStoreFrame extends JFrame {
 		{
             public boolean isCellEditable(int row, int column)
                  {
-                            return false;}//±í¸ñ²»ÔÊĞí±»±à¼­
+                            return false;}//Â±Ã­Â¸Ã±Â²Â»Ã”ÃŠÃÃ­Â±Â»Â±Ã Â¼Â­
                  };
 		JScrollPane scrollPanelForOrderTable = new JScrollPane(orderTable);
 		scrollPanelForOrderTable.setPreferredSize(new Dimension(400, 300));
@@ -353,6 +353,13 @@ public class BookStoreFrame extends JFrame {
 							JOptionPane.showMessageDialog(null, "Some book in the order is out of stock!","information", JOptionPane.INFORMATION_MESSAGE); 
 							return;
 						}
+					}
+					String payFieldString = payField.getText();
+					String numberFieldString = numberField.getText();
+					if(payFieldString.toLowerCase().contains("card") && numberFieldString.equals(""))
+					{
+						JOptionPane.showMessageDialog(null,"you need to input card number","information",JOptionPane.INFORMATION_MESSAGE);
+						return;
 					}
 					
 					String stunum = snumField.getText();
