@@ -1,4 +1,4 @@
-drop table orders casecade;
-drop table orderbook casecade;
-drop table student casecade;
-drop table books cascade;
+drop table orders cascade constraints;
+drop table orderbook cascade constraints;
+drop table student cascade constraints;
+drop table books cascade constraints;
