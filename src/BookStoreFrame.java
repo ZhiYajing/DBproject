@@ -27,6 +27,10 @@ import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.table.DefaultTableModel;
 
+/**
+ * This is a online book store system interface support: order search, order make, order cancel
+ * @author ZHI Yajing
+ */
 public class BookStoreFrame extends JFrame {
 	/**
 	 * declare global variable
@@ -151,12 +155,11 @@ public class BookStoreFrame extends JFrame {
 		//table datas
 		Object orderData[][] = getOrderData("all");
 		DefaultTableModel model2 = new DefaultTableModel(orderData, orderColumnNames);
-		//JTable orderTable = new JTable(model2);
 		JTable orderTable = new JTable(model2)
 		{
             public boolean isCellEditable(int row, int column)
                  {
-                            return false;}//±í¸ñ²»ÔÊÐí±»±à¼­
+                            return false;}//make the JTable unedited
                  };
 	
 		//only select one row
@@ -335,7 +338,12 @@ public class BookStoreFrame extends JFrame {
 		
 		
 		DefaultTableModel model1 = new DefaultTableModel(null, new String[]{"Book Number","Title","Author","Price","Amount"});
-		JTable booksTable = new JTable(model1);
+		JTable booksTable = new JTable(model1)
+		{
+			public boolean isCellEditable(int row, int column)
+        {
+            return false;}//make JTable unedited
+ };
 		JScrollPane booksPane = new JScrollPane(booksTable);
 		booksPane.setBounds(10, 130, 500, 160);
 		makePanel.add(booksPane);
