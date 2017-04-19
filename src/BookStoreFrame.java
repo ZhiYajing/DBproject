@@ -29,7 +29,7 @@ import javax.swing.table.DefaultTableModel;
 
 public class BookStoreFrame extends JFrame {
 	/**
-	 * 
+	 * declare global variable
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -51,8 +51,8 @@ public class BookStoreFrame extends JFrame {
 				pst.setString(1, studentnumber);
 			}
 			ResultSet rs = pst.executeQuery();
-			List<Object[]> list = new ArrayList<Object[]>();
-			//construct the data array
+			List<Object[]> list = new ArrayList<Object[]>(); //construct the data array
+			
 			while(rs.next()){
 				Object a[] = new Object[6];
 				for(int i=1;i<=6;i++){
@@ -73,7 +73,7 @@ public class BookStoreFrame extends JFrame {
 		}
 	}
 	
-	/*
+	/**
 	 * get all the books by orderid
 	 */
 	private Object[][] getBookData(String orderId) {
@@ -114,13 +114,14 @@ public class BookStoreFrame extends JFrame {
 	}
 
 	/*
-	 * init the view
+	 * initialize the view
 	 */
 	public BookStoreFrame(Connection conn) {
 		super();
 		this.conn = conn;
 		this.setBounds(200, 100, 1000, 500);
 		this.setTitle("BookStore");
+		
 		//menu bar
 		JMenuBar bar = new JMenuBar();
 		JMenu menu = new JMenu("Select Action");
@@ -129,6 +130,7 @@ public class BookStoreFrame extends JFrame {
 		menu.add(searchMenu);
 		JMenuItem makeMenu = new JMenuItem("Order Make");
 		menu.add(makeMenu);
+		
 		//search panel
 		searchPanel = new JPanel();
 		//search panel uses border layout
@@ -142,6 +144,7 @@ public class BookStoreFrame extends JFrame {
 		upPanel.add(searchBt);
 		searchPanel.add(upPanel, BorderLayout.NORTH);
 		JPanel middlePanel = new JPanel();
+		
 		//table header
 		final String[] orderColumnNames = { "OrderId", "Student Number", "Order Date", "Total Price", "Payment Method",
 				"Card No" };
@@ -166,7 +169,7 @@ public class BookStoreFrame extends JFrame {
 		{
             public boolean isCellEditable(int row, int column)
                  {
-                            return false;}//±í¸ñ²»ÔÊÐí±»±à¼­
+                            return false;}//make the JTable unedited
                  };
 		JScrollPane scrollPanelForOrderTable = new JScrollPane(orderTable);
 		scrollPanelForOrderTable.setPreferredSize(new Dimension(400, 300));
@@ -182,7 +185,9 @@ public class BookStoreFrame extends JFrame {
 		JButton deliverBut = new JButton("Deliver Book");
 		downPanel.add(deliverBut);
 		
-		//cancel an order
+		/**
+		 * cancel an order
+		 */
 		cancelBut.addActionListener(new ActionListener() {
 			
 			@Override
@@ -239,7 +244,10 @@ public class BookStoreFrame extends JFrame {
 				}
 			}
 		});
-		//deliver a book
+		
+		/**
+		 * deliver a book
+		 */
 		deliverBut.addActionListener(new ActionListener() {
 			
 			@Override
@@ -336,7 +344,10 @@ public class BookStoreFrame extends JFrame {
 		makeBt.setBounds(10, 300, 160, 30);
 		makePanel.add(makeBt);
 		
-		//when make button is clicked
+		/**
+		 * make a new order
+		 */
+		// when make button is clicked
 		makeBt.addActionListener(new ActionListener() {
 			
 			@Override
