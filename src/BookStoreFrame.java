@@ -29,7 +29,7 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  * This is a online book store system interface support: order search, order make, order cancel
- * @author ZHI Yajing
+ * @author Zhi Yajing
  */
 public class BookStoreFrame extends JFrame {
 	/**
@@ -39,6 +39,7 @@ public class BookStoreFrame extends JFrame {
 
 	private JPanel searchPanel;
 	private JPanel makePanel;
+	private JPanel studentPanel;
 	private Connection conn;//hold the connection
 
 	/*
@@ -134,6 +135,8 @@ public class BookStoreFrame extends JFrame {
 		menu.add(searchMenu);
 		JMenuItem makeMenu = new JMenuItem("Order Make");
 		menu.add(makeMenu);
+		JMenuItem studentMenu = new JMenuItem("student info");
+		menu.add(studentMenu);
 		
 		//search panel
 		searchPanel = new JPanel();
@@ -191,62 +194,63 @@ public class BookStoreFrame extends JFrame {
 		/**
 		 * cancel an order
 		 */
-		cancelBut.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-				int row = orderTable.getSelectedRow();
-				if(row < 0 ){
-					JOptionPane.showMessageDialog(null, "You must select an order to cancel!");
-				}else{
-					try{
-						//get selected order number
-						String orderNum = (String) orderTable.getValueAt(row, 0);
-						
-						PreparedStatement pst = conn.prepareStatement("select *  from orderbook where orderid=? and delivered=1");
-						pst.setString(1, orderNum);
-						ResultSet rs = pst.executeQuery();
-						//check if any book has been delivered
-						if(rs.next()){
-							rs.close();
-							pst.close();
-							JOptionPane.showMessageDialog(null, "Some of the books in the order has been delivered!");
-							return;
+		//cancel an order
+				cancelBut.addActionListener(new ActionListener() {
+					
+					@Override
+					public void actionPerformed(ActionEvent arg0) {
+						int row = orderTable.getSelectedRow();
+						if(row < 0 ){
+							JOptionPane.showMessageDialog(null, "You must select an order to cancel!");
 						}else{
-							rs.close();
-							pst.close();
+							try{
+								//get selected order number
+								String orderNum = (String) orderTable.getValueAt(row, 0);
+								
+								PreparedStatement pst = conn.prepareStatement("select *  from orderbook where orderid=? and delivered=1");
+								pst.setString(1, orderNum);
+								ResultSet rs = pst.executeQuery();
+								//check if any book has been delivered
+								if(rs.next()){
+									rs.close();
+									pst.close();
+									JOptionPane.showMessageDialog(null, "Some of the books in the order has been delivered!");
+									return;
+								}else{
+									rs.close();
+									pst.close();
+								}
+								//check if the order was made in 7 days
+								pst = conn.prepareStatement("select *  from orders where orderid=? and orderdate <= sysdate-7");
+								pst.setString(1, orderNum);
+								rs = pst.executeQuery();
+								if(rs.next()){
+									rs.close();
+									pst.close();
+									JOptionPane.showMessageDialog(null, "The order was not made within 7 days!");
+									return;
+								}else{
+									rs.close();
+									pst.close();
+								}
+								//delete the order
+								pst = conn.prepareStatement("delete from orders where orderid=?");
+								pst.setString(1, orderNum);
+								pst.execute();
+								pst.close();
+								//delete relevant orderbooks
+								pst = conn.prepareStatement("delete from orderbook where orderid=?");
+								pst.setString(1, orderNum);
+								pst.execute();
+								pst.close();
+								JOptionPane.showMessageDialog(null, "delete successfully!");
+								searchMenu.doClick();
+							}catch(Exception e){
+								e.printStackTrace();
+							}
 						}
-						//check if the order was made in 7 days
-						pst = conn.prepareStatement("select *  from orders where orderid=? and orderdate <= sysdate-7");
-						pst.setString(1, orderNum);
-						rs = pst.executeQuery();
-						if(rs.next()){
-							rs.close();
-							pst.close();
-							JOptionPane.showMessageDialog(null, "The order was not made within 7 days!");
-							return;
-						}else{
-							rs.close();
-							pst.close();
-						}
-						//delete the order
-						pst = conn.prepareStatement("delete from orders where orderid=?");
-						pst.setString(1, orderNum);
-						pst.execute();
-						pst.close();
-						//delete relevant orderbooks
-						pst = conn.prepareStatement("delete from orderbook where orderid=?");
-						pst.setString(1, orderNum);
-						pst.execute();
-						pst.close();
-						JOptionPane.showMessageDialog(null, "delete successfully!");
-						searchMenu.doClick();
-					}catch(Exception e){
-						e.printStackTrace();
 					}
-				}
-			}
-		});
+				});
 		
 		/**
 		 * deliver a book
@@ -310,144 +314,158 @@ public class BookStoreFrame extends JFrame {
 		});
 		
 		//make order panel
-		makePanel = new JPanel();
-		makePanel.setLayout(null);
-		JLabel snumLabel = new JLabel("Student Number:");
-		JTextField snumField = new JTextField();
-		snumLabel.setBounds(10, 10, 100, 30);
-		snumField.setBounds(160, 10, 100, 30);
-		makePanel.add(snumLabel);
-		makePanel.add(snumField);
-		
-		JLabel payLabel = new JLabel("Payment Method:");
-		JLabel payDetial = new JLabel("(choose credit card or Alipay)");
-		JTextField payField = new JTextField();
-		payLabel.setBounds(10, 50, 100, 30);
-		payDetial.setBounds(260,50,200,30);
-		payField.setBounds(160, 50, 100, 30);
-		makePanel.add(payLabel);
-		makePanel.add(payField);
-		makePanel.add(payDetial);
-		
-		JLabel numberLabel = new JLabel("Card No:");
-		JTextField numberField = new JTextField();
-		numberLabel.setBounds(10, 90, 100, 30);
-		numberField.setBounds(160, 90, 100, 30);
-		makePanel.add(numberLabel);
-		makePanel.add(numberField);
-		
-		
-		DefaultTableModel model1 = new DefaultTableModel(null, new String[]{"Book Number","Title","Author","Price","Amount"});
-		JTable booksTable = new JTable(model1)
-		{
-			public boolean isCellEditable(int row, int column)
-        {
-            return false;}//make JTable unedited
- };
-		JScrollPane booksPane = new JScrollPane(booksTable);
-		booksPane.setBounds(10, 130, 500, 160);
-		makePanel.add(booksPane);
-		
-		JButton makeBt = new JButton("Make Order");
-		makeBt.setBounds(10, 300, 160, 30);
-		makePanel.add(makeBt);
-		
-		/**
-		 * make a new order
-		 */
-		// when make button is clicked
-		makeBt.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(ActionEvent e) {
+				makePanel = new JPanel();
+				makePanel.setLayout(null);
+				JLabel snumLabel = new JLabel("Student Number:");
+				JTextField snumField = new JTextField();
+				snumLabel.setBounds(10, 10, 100, 30);
+				snumField.setBounds(160, 10, 100, 30);
+				makePanel.add(snumLabel);
+				makePanel.add(snumField);
 				
-				try {
-					//use UUID as orderid
-					String orderid = UUID.randomUUID().toString();
-					String orderbookid = UUID.randomUUID().toString();
-					BigDecimal totalPrice = new BigDecimal(0);
-					for( int i:booksTable.getSelectedRows()){
-						BigDecimal amount = (BigDecimal)booksTable.getValueAt(i, 4);
-						if(amount.compareTo(new BigDecimal(0))<=0){
-							JOptionPane.showMessageDialog(null, "Some book in the order is out of stock!","information", JOptionPane.INFORMATION_MESSAGE); 
-							return;
+				JLabel payLabel = new JLabel("Payment Method:");
+				JLabel payDetial = new JLabel("(choose credit card or cash)");
+				JTextField payField = new JTextField();
+				payLabel.setBounds(10, 50, 100, 30);
+				payDetial.setBounds(260,50,200,30);
+				payField.setBounds(160, 50, 100, 30);
+				makePanel.add(payLabel);
+				makePanel.add(payField);
+				makePanel.add(payDetial);
+				
+				JLabel numberLabel = new JLabel("Card No:");
+				JTextField numberField = new JTextField();
+				numberLabel.setBounds(10, 90, 100, 30);
+				numberField.setBounds(160, 90, 100, 30);
+				makePanel.add(numberLabel);
+				makePanel.add(numberField);
+				
+				
+				DefaultTableModel model1 = new DefaultTableModel(null, new String[]{"Book Number","Title","Author","Price","Amount"});
+				JTable booksTable = new JTable(model1)
+				{
+		            public boolean isCellEditable(int row, int column)
+		                 {
+		                            return false;}//make JTable unedited
+		                 };
+				JScrollPane booksPane = new JScrollPane(booksTable);
+				booksPane.setBounds(10, 130, 500, 160);
+				makePanel.add(booksPane);
+				
+				JButton makeBt = new JButton("Make Order");
+				makeBt.setBounds(10, 300, 160, 30);
+				makePanel.add(makeBt);
+				
+				//when make button is clicked
+				makeBt.addActionListener(new ActionListener() {
+					
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						
+						try {
+							//use UUID as orderid
+							String orderid = UUID.randomUUID().toString();
+							String orderbookid = UUID.randomUUID().toString();
+							BigDecimal totalPrice = new BigDecimal(0);
+							for( int i:booksTable.getSelectedRows()){
+								BigDecimal amount = (BigDecimal)booksTable.getValueAt(i, 4);
+								if(amount.compareTo(new BigDecimal(0))<=0){
+									JOptionPane.showMessageDialog(null, "Some book in the order is out of stock!","information", JOptionPane.INFORMATION_MESSAGE); 
+									return;
+								}
+							}
+							
+							String payFieldString = payField.getText();
+							String numberFieldString = numberField.getText();
+							if(payFieldString.toLowerCase().contains("card") && numberFieldString.equals(""))
+							{
+								JOptionPane.showMessageDialog(null,"you need to input card number","information",JOptionPane.INFORMATION_MESSAGE);
+								return;
+							}
+							
+							String stunum = snumField.getText();
+							//checkout if the student has outstanding orders
+							PreparedStatement pst = conn.prepareStatement("select * from orderbook a,orders b where a.orderid=b.orderid and a.delivered=0 and b.studentnumber = ?");
+							pst.setString(1, stunum);
+							ResultSet rs = pst.executeQuery();
+							if(rs.next()){
+								rs.close();
+								pst.close();
+								JOptionPane.showMessageDialog(null, "The student has outstanding orders!","information", JOptionPane.INFORMATION_MESSAGE); 
+								return;
+							}else{
+								rs.close();
+								pst.close();
+							}
+							
+							//insert to orderbook
+							for( int i:booksTable.getSelectedRows()){
+								BigDecimal price = (BigDecimal)booksTable.getValueAt(i, 3);
+								String booknum = (String)booksTable.getValueAt(i, 0);
+								PreparedStatement pst1 = conn.prepareStatement("insert into orderbook (orderbookid,orderid,booknumber,delivered) VALUES (?,?,?,0)");
+								pst1.setString(1, orderbookid);
+								pst1.setString(2, orderid);
+								pst1.setString(3, booknum);
+								pst1.execute();
+								pst1.close();
+								totalPrice = totalPrice.add(price);
+							}
+							
+							
+							
+							String paymethod = payField.getText();
+							String cardno = numberField.getText();
+							//insert to orders
+							try{
+								String sql = "insert into orders VALUES (?,?,sysdate,?,?,?)";
+								pst = conn.prepareStatement(sql);
+								pst.setString(1, orderid);
+								pst.setString(2, stunum);
+								pst.setDouble(3, totalPrice.doubleValue());
+								pst.setString(4, paymethod);
+								pst.setString(5, cardno);
+								pst.execute();
+								pst.close();
+								JOptionPane.showMessageDialog(null, "Make Order Successfully!","information", JOptionPane.INFORMATION_MESSAGE); 
+								searchMenu.doClick();
+							}catch(SQLException ee){
+								//the tr5 tigger raise an application error -20001
+								String msg  = ee.getMessage();
+								int i = msg.indexOf("ORA-20001:");
+								int j = msg.indexOf('\n');
+								
+								JOptionPane.showMessageDialog(null, msg.substring(i+10, j),"information", JOptionPane.INFORMATION_MESSAGE); 
+								
+							}
+						} catch (SQLException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
 						}
-					}
-					String payFieldString = payField.getText();
-					String numberFieldString = numberField.getText();
-					if(payFieldString.toLowerCase().contains("card") && numberFieldString.equals(""))
-					{
-						JOptionPane.showMessageDialog(null,"you need to input card number","information",JOptionPane.INFORMATION_MESSAGE);
-						return;
-					}
-					
-					String stunum = snumField.getText();
-					//checkout if the student has outstanding orders
-					PreparedStatement pst = conn.prepareStatement("select * from orderbook a,orders b where a.orderid=b.orderid and a.delivered=0 and b.studentnumber = ?");
-					pst.setString(1, stunum);
-					ResultSet rs = pst.executeQuery();
-					if(rs.next()){
-						rs.close();
-						pst.close();
-						JOptionPane.showMessageDialog(null, "The student has outstanding orders!","information", JOptionPane.INFORMATION_MESSAGE); 
-						return;
-					}else{
-						rs.close();
-						pst.close();
-					}
-					
-					//insert to orderbook
-					for( int i:booksTable.getSelectedRows()){
-						BigDecimal price = (BigDecimal)booksTable.getValueAt(i, 3);
-						String booknum = (String)booksTable.getValueAt(i, 0);
-						PreparedStatement pst1 = conn.prepareStatement("insert into orderbook (orderbookid,orderid,booknumber,delivered) VALUES (?,?,?,0)");
-						pst1.setString(1, orderbookid);
-						pst1.setString(2, orderid);
-						pst1.setString(3, booknum);
-						pst1.execute();
-						pst1.close();
-						totalPrice = totalPrice.add(price);
-					}
-					
-					
-					
-					String paymethod = payField.getText();
-					String cardno = numberField.getText();
-					//insert to orders
-					try{
-						String sql = "insert into orders VALUES (?,?,sysdate,?,?,?)";
-						pst = conn.prepareStatement(sql);
-						pst.setString(1, orderid);
-						pst.setString(2, stunum);
-						pst.setDouble(3, totalPrice.doubleValue());
-						pst.setString(4, paymethod);
-						pst.setString(5, cardno);
-						pst.execute();
-						pst.close();
-						JOptionPane.showMessageDialog(null, "Make Order Successfully!","information", JOptionPane.INFORMATION_MESSAGE); 
-						searchMenu.doClick();
-					}catch(SQLException ee){
-						//the tr5 tigger raise an application error -20001
-						String msg  = ee.getMessage();
-						int i = msg.indexOf("ORA-20001:");
-						int j = msg.indexOf('\n');
-						
-						JOptionPane.showMessageDialog(null, msg.substring(i+10, j),"information", JOptionPane.INFORMATION_MESSAGE); 
 						
 					}
-				} catch (SQLException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
+				});
 				
-			}
-		});
+		//student information panel
+				studentPanel = new JPanel();
+				studentPanel.setLayout(null);
+				DefaultTableModel model3 = new DefaultTableModel(null, new String[]{"Student Number","Name","Gender","Major","Dicountlevel","Total amount"});
+				JTable studentTable = new JTable(model3)
+				{
+		            public boolean isCellEditable(int row, int column)
+		                 {
+		                            return false;}//make JTable unedited
+		                 };
+				JScrollPane studentPane = new JScrollPane(studentTable);
+				studentPane.setBounds(10, 100, 500, 160);
+				studentPanel.add(studentPane);
+			
 		//menu is clicked
 		searchMenu.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				BookStoreFrame.this.remove(makePanel);
+				BookStoreFrame.this.remove(studentPanel);
 				BookStoreFrame.this.add(searchPanel);
 				BookStoreFrame.this.setBounds(200, 100, 1000, 500);
 				DefaultTableModel m = (DefaultTableModel)orderTable.getModel();
@@ -478,6 +496,7 @@ public class BookStoreFrame extends JFrame {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				BookStoreFrame.this.remove(searchPanel);
+				BookStoreFrame.this.remove(studentPanel);
 				BookStoreFrame.this.add(makePanel);
 				DefaultTableModel tableModel = (DefaultTableModel) booksTable.getModel();
 				tableModel.setRowCount(0);
@@ -505,7 +524,43 @@ public class BookStoreFrame extends JFrame {
 				BookStoreFrame.this.validate();
 			}
 		});
+		
+		//student menu is clicked
+				studentMenu.addActionListener(new ActionListener() {
+
+					@Override
+					public void actionPerformed(ActionEvent e) {
+						BookStoreFrame.this.remove(searchPanel);
+						BookStoreFrame.this.remove(makePanel);
+						BookStoreFrame.this.add(studentPanel);
+						DefaultTableModel tableModel = (DefaultTableModel) studentTable.getModel();
+						tableModel.setRowCount(0);
+						try {
+							//get all the students
+							PreparedStatement pst;
+							pst = conn.prepareStatement("select S.studentnumber,S.name,S.gender,S.major,S.discountlevel,sum(O.totalprice) from STUDENT S, ORDERS O where S.studentnumber=O.studentnumber group by S.studentnumber,S.name,S.gender,S.major,S.discountlevel");
+							ResultSet rs = pst.executeQuery();
+							while(rs.next()){
+								Object a[] = new Object[6];
+								for(int i=1;i<=6;i++){
+									a[i-1] = rs.getObject(i);
+								}
+								tableModel.addRow(a);
+							}
+							rs.close();
+							pst.close();
+						} catch (Exception ee) {
+							ee.printStackTrace();
+						}
+						BookStoreFrame.this.setBounds(200, 100, 600, 450);
+						BookStoreFrame.this.validate();
+					}
+				});
+				
 		searchMenu.doClick();
 		this.setJMenuBar(bar);
 	}
 }
+
+
+

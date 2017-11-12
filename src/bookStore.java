@@ -16,8 +16,9 @@ import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
 /**
- * This is a online book store system to support: (1)  (2) (3)  (4) 
- * @author 
+ * This is a online book store system to support: order search, order make, order cancel
+ * this class contain the main method
+ * @author Zhi Yajing
  */
 
 public class bookStore {
